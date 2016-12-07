@@ -112,7 +112,6 @@ class PurchaseRequestLineMakePurchaseOrder(models.TransientModel):
                 _('Enter a supplier.'))
         supplier = self.supplier_id
         supplier_pricelist = supplier.property_product_pricelist.id or False
-	import ipdb; ipdb.set_trace();
         data = {
             'origin': '',
             'partner_id': self.supplier_id.id,
