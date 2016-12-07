@@ -111,12 +111,12 @@ class PurchaseRequestLineMakePurchaseOrder(models.TransientModel):
             raise exceptions.Warning(
                 _('Enter a supplier.'))
         supplier = self.supplier_id
-        supplier_pricelist = supplier.property_product_pricelist  \
-            or False
+        supplier_pricelist = supplier.property_product_pricelist.id or False
+	import ipdb; ipdb.set_trace();
         data = {
             'origin': '',
             'partner_id': self.supplier_id.id,
-            'pricelist_id': supplier_pricelist.id,
+            'pricelist_id': supplier_pricelist,
             'location_id': location.id,
             'fiscal_position': supplier.property_account_position_id and
             supplier.property_account_position_id.id or False,
