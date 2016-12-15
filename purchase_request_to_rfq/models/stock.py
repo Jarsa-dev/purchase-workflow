@@ -59,3 +59,4 @@ class StockPicking(models.Model):
                     self._purchase_request_picking_confirm_message_content(
                         picking, request, requests_dict[request_id])
                 request.message_post(body=message, subtype='mail.mt_comment')
+

@@ -113,15 +113,6 @@ class PurchaseRequestLine(models.Model):
             qty = max(qty, supplierinfo_min_qty) if qty > 0.0 else 0.0
 
         price = po_line.price_unit
-        if qty != po_line.product_qty:
-            pricelist_obj = self.pool['product.pricelist']
-            pricelist_id = po_line.order_id.partner_id.\
-                property_product_pricelist.id
-            price = pricelist_obj.price_get(
-                self.env.cr, self.env.uid, [pricelist_id],
-                request_line.product_id.id, qty,
-                po_line.order_id.partner_id.id,
-                {'uom': request_line.product_id.uom_po_id.id})[pricelist_id]
 
         return qty, price
 
@@ -132,3 +123,4 @@ class PurchaseRequestLine(models.Model):
                 _('You cannot delete a record that refers to purchase '
                   'lines!'))
         return super(PurchaseRequestLine, self).unlink()
+

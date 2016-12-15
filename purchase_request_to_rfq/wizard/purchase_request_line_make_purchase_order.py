@@ -111,11 +111,9 @@ class PurchaseRequestLineMakePurchaseOrder(models.TransientModel):
             raise exceptions.Warning(
                 _('Enter a supplier.'))
         supplier = self.supplier_id
-        supplier_pricelist = supplier.property_product_pricelist.id or False
         data = {
             'origin': '',
             'partner_id': self.supplier_id.id,
-            'pricelist_id': supplier_pricelist,
             'location_id': location.id,
             'fiscal_position': supplier.property_account_position_id and
             supplier.property_account_position_id.id or False,
@@ -129,22 +127,7 @@ class PurchaseRequestLineMakePurchaseOrder(models.TransientModel):
         po_line_obj = self.env['purchase.order.line']
         product = item.product_id
         supplier = self.supplier_id
-        pricelist_id = supplier.property_product_pricelist
-
-        if pricelist_id:
-            date_order_str = datetime.strptime(
-                fields.datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                DEFAULT_SERVER_DATETIME_FORMAT).\
-                strftime(DEFAULT_SERVER_DATE_FORMAT)
-            price = pricelist_id.price_get(prod_id=product.id,
-                                           qty=item.product_qty or 1.0,
-                                           partner=supplier or False,
-                                           context={'uom':
-                                                    product.uom_po_id.id,
-                                                    'date': date_order_str})
-            price = price[pricelist_id.id]
-        else:
-            price = product.standard_price
+        price = product.standard_price
 
         vals = po_line_obj.onchange_product_id()
         vals.update({
@@ -271,3 +254,4 @@ class PurchaseRequestLineMakePurchaseOrderItem(models.TransientModel):
             self.product_uom_id = self.product_id.uom_id.id
             self.product_qty = 1
             self.name = name
+

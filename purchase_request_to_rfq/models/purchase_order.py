@@ -103,3 +103,4 @@ class PurchaseOrderLine(models.Model):
                 'view_type': 'form',
                 'view_mode': 'tree,form',
                 'domain': domain}
+
