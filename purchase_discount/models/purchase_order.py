@@ -17,9 +17,7 @@ class PurchaseOrderLine(models.Model):
             if line.discount:
                 prices[line.id] = line.price_unit
                 line.price_unit *= (1 - line.discount / 100.0)
-        super(PurchaseOrderLine, self)._compute_amount()
-        # restore prices
-        for line in self:
+            super(PurchaseOrderLine, line)._compute_amount()
             if line.discount:
                 line.price_unit = prices[line.id]
 
@@ -30,3 +28,17 @@ class PurchaseOrderLine(models.Model):
         ('discount_limit', 'CHECK (discount <= 100.0)',
          'Discount must be lower than 100%.'),
     ]
+
+    @api.multi
+    def _get_stock_move_price_unit(self):
+        """Get correct price with discount replacing current price_unit
+        value before calling super and restoring it later for assuring
+        maximum inheritability.
+        """
+        if self.discount:
+            price_unit = self.price_unit
+            self.price_unit *= (100 - self.discount) / 100
+        price = super(PurchaseOrderLine, self)._get_stock_move_price_unit()
+        if self.discount:
+            self.price_unit = price_unit
+        return price

@@ -9,7 +9,8 @@ _STATES = [
     ('draft', 'Draft'),
     ('to_approve', 'To be approved'),
     ('approved', 'Approved'),
-    ('rejected', 'Rejected')
+    ('rejected', 'Rejected'),
+    ('done', 'Done')
 ]
 
 
@@ -30,7 +31,7 @@ class PurchaseRequest(models.Model):
 
     @api.model
     def _get_default_name(self):
-        return self.env['ir.sequence'].get('purchase.request')
+        return self.env['ir.sequence'].next_by_code('purchase.request')
 
     @api.model
     def _default_picking_type(self):
@@ -48,7 +49,7 @@ class PurchaseRequest(models.Model):
     @api.depends('state')
     def _compute_is_editable(self):
         for rec in self:
-            if rec.state in ('to_approve', 'approved', 'rejected'):
+            if rec.state in ('to_approve', 'approved', 'rejected', 'done'):
                 rec.is_editable = False
             else:
                 rec.is_editable = True
@@ -62,6 +63,8 @@ class PurchaseRequest(models.Model):
                 return 'purchase_request.mt_request_approved'
             elif 'state' in init_values and rec.state == 'rejected':
                 return 'purchase_request.mt_request_rejected'
+            elif 'state' in init_values and rec.state == 'done':
+                return 'purchase_request.mt_request_done'
         return super(PurchaseRequest, self)._track_subtype(init_values)
 
     name = fields.Char('Request Reference', size=32, required=True,
@@ -154,6 +157,12 @@ class PurchaseRequest(models.Model):
             rec.state = 'rejected'
         return True
 
+    @api.multi
+    def button_done(self):
+        for rec in self:
+            rec.state = 'done'
+        return True
+
 
 class PurchaseRequestLine(models.Model):
 
@@ -166,7 +175,8 @@ class PurchaseRequestLine(models.Model):
                  'analytic_account_id', 'date_required', 'specifications')
     def _compute_is_editable(self):
         for rec in self:
-            if rec.request_id.state in ('to_approve', 'approved', 'rejected'):
+            if rec.request_id.state in ('to_approve', 'approved', 'rejected',
+                                        'done'):
                 rec.is_editable = False
             else:
                 rec.is_editable = True
@@ -236,14 +246,14 @@ class PurchaseRequestLine(models.Model):
                                      'Procurement Order',
                                      readonly=True)
 
-    @api.onchange('product_id', 'product_uom_id')
+    @api.onchange('product_id')
     def onchange_product_id(self):
         if self.product_id:
             name = self.product_id.name
             if self.product_id.code:
-                name = '[%s] %s' % (name, self.product_id.code)
+                name = '[%s] %s' % (self.product_id.code, name)
             if self.product_id.description_purchase:
                 name += '\n' + self.product_id.description_purchase
             self.product_uom_id = self.product_id.uom_id.id
-            self.product_qty = 1
+            self.product_qty = 1.0
             self.name = name
