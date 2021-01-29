@@ -34,6 +34,8 @@ class PurchaseRequestLine(models.Model):
         string="Purchase Request",
         ondelete="cascade",
         readonly=True,
+        index=True,
+        auto_join=True,
     )
     company_id = fields.Many2one(
         comodel_name="res.company",
@@ -215,7 +217,7 @@ class PurchaseRequestLine(models.Model):
         "purchase_request_allocation_ids",
         "purchase_request_allocation_ids.stock_move_id.state",
         "purchase_request_allocation_ids.stock_move_id",
-        "purchase_request_allocation_ids.purchase_line_id.order_id." "state",
+        "purchase_request_allocation_ids.purchase_line_id.order_id.state",
         "purchase_request_allocation_ids.purchase_line_id",
     )
     def _compute_qty_cancelled(self):
@@ -387,7 +389,7 @@ class PurchaseRequestLine(models.Model):
     def unlink(self):
         if self.mapped("purchase_lines"):
             raise UserError(
-                _("You cannot delete a record that refers to purchase " "lines!")
+                _("You cannot delete a record that refers to purchase lines!")
             )
         for line in self:
             if not line._can_be_deleted():
